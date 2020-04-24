@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: vision-gateway-service
+  labels:
+    app: vision-gateway
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 5001      # push by ConfigMap
+      targetPort: 8000
+      protocol: TCP
+  externalTrafficPolicy: Local
+  selector:
+    app: vision-gateway
+
+---
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: vision-gateway
+spec:
+  serviceName: vision-gateway-service
+  replicas: 1
+  updateStrategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: vision-gateway
+  template:
+    metadata:
+      labels:
+        app: vision-gateway
+    spec:
+      containers:
+      - name: vision-gateway
+        image: gcr.io/base-gcs-test/gateway:v3
+        ports:
+        - containerPort: 8000
+          name: gateway

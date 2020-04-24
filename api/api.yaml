@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: vision-api-service
+  labels:
+    app: vision-api-service
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 3000      # push by ConfigMap
+      targetPort: 3000
+      protocol: TCP
+  selector:
+    app: vision-api-deployment
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vision-api-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vision-api-deployment
+  template:
+    metadata:
+      labels:
+        app: vision-api-deployment
+    spec:
+      containers:
+      - name: vision-api
+        image: gcr.io/base-gcs-test/vision-api:v5
+        ports:
+        - containerPort: 3000
+          name: api
+        resources:
+          limits:
+            nvidia.com/gpu: 1
